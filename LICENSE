@@ -1,0 +1,44 @@
+Copyright (c) 2026 hp197
+
+This work is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+
+To view a copy of this license, visit:
+    https://creativecommons.org/licenses/by-nc-sa/4.0/
+or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+You are free to:
+  - Share  — copy and redistribute the material in any medium or format
+  - Adapt  — remix, transform, and build upon the material
+
+Under the following terms:
+  - Attribution   — You must give appropriate credit, provide a link to the
+                    license, and indicate if changes were made.
+  - NonCommercial — You may not use the material for commercial purposes.
+  - ShareAlike    — If you remix, transform, or build upon the material, you
+                    must distribute your contributions under the same license
+                    as the original.
+  - No additional restrictions — You may not apply legal terms or technological
+                    measures that legally restrict others from doing anything the
+                    license permits.
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+To the extent possible under law, the author disclaims all liability for any
+damage arising from the use of this work.
+
+------------------------------------------------------------------------------
+Third-party components
+
+This project is built on the Artery AT32F415 Board Support Package (BSP) and
+CMSIS, which are pulled in at build time and are NOT covered by the license
+above. They remain the copyrighted work of their respective owners:
+
+  - Artery AT32F415 BSP, including the bundled `include/at32f415_conf.h`
+    (c) Artery Technology. Used under Artery's BSP license (use, copy, and
+    distribute for design and development in conjunction with Artery
+    microcontrollers). See that file's header for the full notice.
+  - CMSIS (c) Arm Limited, licensed under Apache-2.0.
+
+The CC BY-NC-SA 4.0 license applies to the original work in this repository
+(the bootloader source, linker script, and build configuration), not to these
+third-party components.

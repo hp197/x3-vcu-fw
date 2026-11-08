@@ -1,0 +1,29 @@
+name: cppcheck
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        # warning level only: the project's coding standard mandates top-of-block locals, which
+        # conflicts with cppcheck's `style` (variableScope); reviewed warnings are in
+        # tools/cppcheck-suppressions.txt. A new warning fails the job (--error-exitcode).
+        run: |
+          cppcheck --enable=warning --std=c11 --language=c --platform=unix32 \
+            -I include \
+            --suppress=missingIncludeSystem \
+            --inline-suppr \
+            --suppressions-list=tools/cppcheck-suppressions.txt \
+            --error-exitcode=1 \
+            src include

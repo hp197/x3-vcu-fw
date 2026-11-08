@@ -1,0 +1,15 @@
+# cppcheck suppressions for CI (used by .github/workflows/cppcheck.yml).
+# Each entry is a reviewed, intentional finding; a NEW warning elsewhere still fails the gate.
+
+# Intentional: behind #ifdef FM_RAW_SENTINEL_FIX (never defined in-tree). The original firmware
+# ships `raw_code == -3 && raw_code == -2` (always false, a documented vendor bug) and we keep it
+# verbatim there. See src/faultmon.c.
+incorrectLogicOperator:src/faultmon.c
+
+# Intentional: the TEA/XTEA CBC step XORs the 8-byte IV addressed as &g_ota.cbc_prev_lo, which
+# spans the adjacent cbc_prev_lo/cbc_prev_hi fields. See src/ota.c.
+objectIndex:src/ota.c
+
+# False positive: ring->tail is always stored back within [0, VCU_UART_SLOTS) (wrap happens after
+# the store), so ring->slot[tail] is in bounds. See src/usart.c.
+arrayIndexOutOfBoundsCond:src/usart.c

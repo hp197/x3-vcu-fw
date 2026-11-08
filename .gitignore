@@ -1,0 +1,13 @@
+.pio
+.vscode
+.claude/
+
+*.bin
+*.hex
+*.elf
+*.enc
+
+input/
+platformio.local.ini
+__pycache__/
+firmware.bin
