@@ -80,5 +80,5 @@ jobs:
             --prerelease \
             --target "${{ github.sha }}" \
             --title "${{ steps.ver.outputs.tag }}" \
-            --notes "Automated pre-release built from main (\`${{ github.sha }}\`). Stable releases are published manually." \
+            --notes "Automated pre-release built from main (\`${{ github.sha }}\`)." \
             dist/x3-vcu-fw-*.bin dist/SHA256SUMS.txt
