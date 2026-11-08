@@ -81,8 +81,8 @@ void vcu_can_poll(void);
 #define CANID_RX_BMS_KEEPAL0 0x501U /* BMS: keep-alive (re-arms BMS watchdog)   */
 #define CANID_RX_BMS_KEEPAL1 0x502U /* BMS: keep-alive (re-arms BMS watchdog)   */
 #define CANID_RX_HANDSHAKE   0x7F1U /* ESC/BMS handshake -> event gate          */
-/* Custom diagnostic ids: the 0x6xx block is unused by the stock bus (drive/ESC/BMS in
-   0x0xx-0x5xx, handshake at 0x7Fx), so these stay clear of a future stock id and are low
+/* Custom diagnostic ids: the 0x6xx block is unused on the bus (drive/ESC/BMS in
+   0x0xx-0x5xx, handshake at 0x7Fx), so these stay clear of a future id and are low
    priority -- they never disturb the real-time drive frames. Must match x3-mcu-fw's can.h. */
 #define CANID_BACKUP_REQ     0x6E0U /* ESC read-only backup request (relay)     */
 #define CANID_BACKUP_RSP     0x6E1U /* ESC read-only backup response (relay)    */
