@@ -1,7 +1,7 @@
 name: release
 
 # On every push to main: build gt3/zt3/f3 and publish a GitHub pre-release with a
-# semver tag (vMAJOR.MINOR.PATCH-pre.<run>). Stable releases (no pre-release label) are
+# semver tag (vMAJOR.MINOR.PATCH-pre.g<short-sha>). Stable releases (no pre-release label) are
 # cut manually. The base version is the next patch above the latest stable tag (or 0.1.0
 # when there is none), so a manual stable vX.Y.Z always sorts above these pre-releases.
 
@@ -47,13 +47,14 @@ jobs:
       - name: Compute pre-release version
         id: ver
         run: |
+          sha7=$(git rev-parse --short=7 HEAD)
           latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
           if [ -z "$latest" ]; then
-            ver="0.1.0-pre.${{ github.run_number }}"
+            ver="0.1.0-pre.g${sha7}"
           else
             b=${latest#v}
             IFS=. read -r MA MI PA <<< "$b"
-            ver="${MA}.${MI}.$((PA + 1))-pre.${{ github.run_number }}"
+            ver="${MA}.${MI}.$((PA + 1))-pre.g${sha7}"
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
           echo "tag=v$ver" >> "$GITHUB_OUTPUT"
@@ -76,9 +77,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          gh release delete "${{ steps.ver.outputs.tag }}" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag 2>/dev/null || true
           gh release create "${{ steps.ver.outputs.tag }}" \
             --prerelease \
             --target "${{ github.sha }}" \
             --title "${{ steps.ver.outputs.tag }}" \
-            --notes "Automated pre-release built from main (\`${{ github.sha }}\`). Stable releases are published manually." \
+            --notes "Automated pre-release built from main (\`${{ github.sha }}\`)." \
             dist/x3-vcu-fw-*.bin dist/SHA256SUMS.txt
