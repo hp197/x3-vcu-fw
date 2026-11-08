@@ -63,46 +63,50 @@ typedef enum {
 /* ------------------------------------------------------------------------- */
 
 /* Further node addresses (the dispatcher routes local frames on `src`). */
-#define NB_ADDR_ESC_3D        0x3DU /* ESC register/pairing node (also 0x3E / 0x3F)     */
-#define NB_ADDR_ESC_3E        0x3EU
-#define NB_ADDR_ESC_3F        0x3FU
+#define NB_ADDR_ESC_3D         0x3DU /* ESC register/pairing node (also 0x3E / 0x3F)     */
+#define NB_ADDR_ESC_3E         0x3EU
+#define NB_ADDR_ESC_3F         0x3FU
 
 /* ------------------------------------------------------------------------- */
 /* Register commands in the `cmd` field.                                     */
 /* cmd 3 is NB_CMD_WRITE3 (usart.h, shared with every report sender).         */
 /* ------------------------------------------------------------------------- */
 
-#define NB_CMD_READ           0x01U /* read  register block -> reply                     */
-#define NB_CMD_WRITE2         0x02U /* guarded write (ride-mode / 0x46 pairing gate)     */
-#define NB_CMD_WRITE4         0x04U /* raw register write                                */
+#define NB_CMD_READ            0x01U /* read  register block -> reply                     */
+#define NB_CMD_WRITE2          0x02U /* guarded write (ride-mode / 0x46 pairing gate)     */
+#define NB_CMD_WRITE4          0x04U /* raw register write                                */
 
 /* OTA sub-commands handed to vcu_ota_dispatch (cases 7..10). */
-#define NB_CMD_OTA_PREPARE    0x07U
-#define NB_CMD_OTA_DATA       0x08U
-#define NB_CMD_OTA_COMMIT     0x09U
-#define NB_CMD_OTA_APPLY      0x0AU
-#define NB_CMD_OTA_REPLY      0x0BU /* OTA sub-protocol status reply (ota.c; also the OTA-busy reply) */
-#define NB_OTA_BUSY_CODE      0x09U /* reply code when the VCU's own OTA is busy                   */
+#define NB_CMD_OTA_PREPARE     0x07U
+#define NB_CMD_OTA_DATA        0x08U
+#define NB_CMD_OTA_COMMIT      0x09U
+#define NB_CMD_OTA_APPLY       0x0AU
+#define NB_CMD_OTA_REPLY       0x0BU /* OTA sub-protocol status reply (ota.c; also the OTA-busy reply) */
+#define NB_OTA_BUSY_CODE       0x09U /* reply code when the VCU's own OTA is busy                   */
 
 /* Pairing / auth sub-commands. */
-#define NB_CMD_PAIR_CHALLENGE 0x18U /* CRC-32 challenge over key + serial         */
-#define NB_REG_SPEED_LIMIT    0x46U /* CRC-gated speed-limit register (IN2+0x8C)   */
+#define NB_CMD_PAIR_CHALLENGE  0x18U /* CRC-32 challenge over key + serial         */
+#define NB_REG_SPEED_LIMIT     0x46U /* CRC-gated speed-limit register (IN2+0x8C)   */
+
+/* Custom (non-Ninebot) command range: 0xF0..0xFE, picked high and clear of the official command
+   space (0x00..0x1F, 0x70..0x7F) so a future stock firmware that adds a command does not collide. */
+#define NB_CMD_BACKUP          0xF0U /* read-only ESC backup relay (app <-> MCU)   */
 
 /* ------------------------------------------------------------------------- */
 /* Crypto / pairing constants.                                               */
 /* ------------------------------------------------------------------------- */
 
-#define NB_CRC32_POLY         0xEDB88320U /* reflected IEEE CRC-32 poly                */
-#define NB_PAIR_MOD           1000000U    /* pairing checksum modulus                  */
-#define NB_KEY_LEN            16U         /* pairing key length (bytes)                */
-#define NB_SERIAL_LEN         10U         /* serial tail compared with "0000000001"     */
-#define NB_SERIAL_PROV_LEN    14U         /* provisioned serial length (IN2+0x20, op 0x18) */
-#define NB_CHALLENGE_LEN      31U         /* CRC-32 input length, cmd 0x18             */
-#define NB_RIDEMODE_LEN       18U         /* CRC-32 input length, reg 0x46             */
+#define NB_CRC32_POLY          0xEDB88320U /* reflected IEEE CRC-32 poly                */
+#define NB_PAIR_MOD            1000000U    /* pairing checksum modulus                  */
+#define NB_KEY_LEN             16U         /* pairing key length (bytes)                */
+#define NB_SERIAL_LEN          10U         /* serial tail compared with "0000000001"     */
+#define NB_SERIAL_PROV_LEN     14U         /* provisioned serial length (IN2+0x20, op 0x18) */
+#define NB_CHALLENGE_LEN       31U         /* CRC-32 input length, cmd 0x18             */
+#define NB_RIDEMODE_LEN        18U         /* CRC-32 input length, reg 0x46             */
 
 /* Register count of one page of the 16-bit register file (g_in2.reg[]: the write
    path range-checks arg+len against 0x100, registers are `reg[arg] : uint16`). */
-#define NB_REG_COUNT          0x100U
+#define NB_REG_COUNT           0x100U
 
 /* ------------------------------------------------------------------------- */
 /* Node address selectors routed by the `src` byte (frame + 1) of the         */
@@ -113,42 +117,42 @@ typedef enum {
 /* NB_ADDR_APP is in usart.h; NB_ADDR_ESC_3D..3F are defined above.         */
 /* ------------------------------------------------------------------------- */
 
-#define NB_ADDR_CTRL          0x04U /* vehicle control node */
+#define NB_ADDR_CTRL           0x04U /* vehicle control node */
 
 /* ------------------------------------------------------------------------- */
 /* Control-node commands in the `cmd` field (src==0x04).                     */
 /* ------------------------------------------------------------------------- */
 
-#define NB_CTRL_REG_READ      0x01U /* read IN2 register block -> reply                    */
-#define NB_CTRL_CMD3          0x03U /* cmd 3; arg 0x86 -> buzzer/horn                      */
-#define NB_CTRL_CMD4          0x04U /* cmd 4; arg 0x20 -> display/ride-mode                */
-#define NB_CTRL_OP7_SESSION   0x07U /* bus-active retrigger (IN1+0x03) + clear the remote lock */
-#define NB_CTRL_OP0A          0x0AU /* IN1+0x05 long UV grace + CAN-active word 0 (report_can_toggle) */
-#define NB_CTRL_LOCK_STATE    0x7AU /* remote lock value -> VS+0x22 (0 -> non-zero edge beeps) */
-#define NB_CTRL_REMOTE_LOCK   0x7BU /* remote lock / unlock (arg 1 unlock, 4 lock, 0/2/3 clear) */
+#define NB_CTRL_REG_READ       0x01U /* read IN2 register block -> reply                    */
+#define NB_CTRL_CMD3           0x03U /* cmd 3; arg 0x86 -> buzzer/horn                      */
+#define NB_CTRL_CMD4           0x04U /* cmd 4; arg 0x20 -> display/ride-mode                */
+#define NB_CTRL_OP7_SESSION    0x07U /* bus-active retrigger (IN1+0x03) + clear the remote lock */
+#define NB_CTRL_OP0A           0x0AU /* IN1+0x05 long UV grace + CAN-active word 0 (report_can_toggle) */
+#define NB_CTRL_LOCK_STATE     0x7AU /* remote lock value -> VS+0x22 (0 -> non-zero edge beeps) */
+#define NB_CTRL_REMOTE_LOCK    0x7BU /* remote lock / unlock (arg 1 unlock, 4 lock, 0/2/3 clear) */
 
-#define NB_CTRL_ARG_BUZZER    0x86U /* cmd 3 arg selecting the buzzer/horn tone           */
-#define NB_CTRL_ARG_MODE      0x20U /* cmd 4 arg selecting the display/ride-mode register */
-#define NB_CTRL_ARG_ECHO      0x7EU /* cmd 2/4 arg: beep + echo body[0] back as cmd 2 arg 0x7E */
-#define NB_CTRL_ARG_E0        0xE0U /* cmd 2/4 arg: body[0] in {1,3,5} -> same beep + 0x7E echo */
+#define NB_CTRL_ARG_BUZZER     0x86U /* cmd 3 arg selecting the buzzer/horn tone           */
+#define NB_CTRL_ARG_MODE       0x20U /* cmd 4 arg selecting the display/ride-mode register */
+#define NB_CTRL_ARG_ECHO       0x7EU /* cmd 2/4 arg: beep + echo body[0] back as cmd 2 arg 0x7E */
+#define NB_CTRL_ARG_E0         0xE0U /* cmd 2/4 arg: body[0] in {1,3,5} -> same beep + 0x7E echo */
 
 /* ------------------------------------------------------------------------- */
 /* Info-node commands in the `cmd` field (src==0x3D/0x3E/0x3F).              */
 /* ------------------------------------------------------------------------- */
 
-#define NB_INFO_REBOOT        0x11U /* arg==1 -> request reboot / clear scratch           */
-#define NB_INFO_CFG_READ      0x13U /* read config block (telemetry frame, REPORT_TELEM_CFG_BASE) -> USART reply */
-#define NB_INFO_CFG_READ_2    0x17U /* alias of 0x13                                      */
-#define NB_INFO_VIN_WRITE     0x19U /* CRC-gated VIN/serial write                         */
-#define NB_INFO_IDENT_READ    0x41U /* identity/version block read -> reply               */
-#define NB_INFO_INPUT_TEST    0x56U /* input-test mode on/off (VS+0x64), ADC-gated            */
-#define NB_INFO_RIDE_START    0x57U /* token-gated ride start (shares 0x59 handler)       */
-#define NB_INFO_RIDE_STOP     0x58U /* token-gated ride/session stop                      */
-#define NB_INFO_UNLOCK        0x59U /* token-gated unlock / session open                  */
-#define NB_INFO_FLAG_5E       0x5EU /* set IN1+0x23 (app_flag_5e, no reader), ack        */
-#define NB_INFO_LIMIT_SET     0x5FU /* PIN-gated write of the session distance (IN2+0xC4) */
-#define NB_INFO_STANDBY       0x79U /* app start (+unlock) / shutdown requests (VS+0x28/+0x2C/+0x1C) */
-#define NB_INFO_LOCK_COMMIT   0x80U /* commit lock / recompute, ack                       */
+#define NB_INFO_REBOOT         0x11U /* arg==1 -> request reboot / clear scratch           */
+#define NB_INFO_CFG_READ       0x13U /* read config block (telemetry frame, REPORT_TELEM_CFG_BASE) -> USART reply */
+#define NB_INFO_CFG_READ_2     0x17U /* alias of 0x13                                      */
+#define NB_INFO_VIN_WRITE      0x19U /* CRC-gated VIN/serial write                         */
+#define NB_INFO_IDENT_READ     0x41U /* identity/version block read -> reply               */
+#define NB_INFO_INPUT_TEST     0x56U /* input-test mode on/off (VS+0x64), ADC-gated            */
+#define NB_INFO_RIDE_START     0x57U /* token-gated ride start (shares 0x59 handler)       */
+#define NB_INFO_RIDE_STOP      0x58U /* token-gated ride/session stop                      */
+#define NB_INFO_UNLOCK         0x59U /* token-gated unlock / session open                  */
+#define NB_INFO_FLAG_5E        0x5EU /* set IN1+0x23 (app_flag_5e, no reader), ack        */
+#define NB_INFO_LIMIT_SET      0x5FU /* PIN-gated write of the session distance (IN2+0xC4) */
+#define NB_INFO_STANDBY        0x79U /* app start (+unlock) / shutdown requests (VS+0x28/+0x2C/+0x1C) */
+#define NB_INFO_LOCK_COMMIT    0x80U /* commit lock / recompute, ack                       */
 
 /* ------------------------------------------------------------------------- */
 /* VCU state blackboard model. The dispatcher works on these state blocks:    */
@@ -162,7 +166,7 @@ typedef enum {
 /* See ninebot.c for the per-field accessors.                                   */
 /* ------------------------------------------------------------------------- */
 
-#define NB_BB_SERIAL          (((volatile uint8_t*)&g_in2) + 0x2Eu) /* serial / VIN base (cmd 0x18 / 0x19) == IN2+0x2E */
+#define NB_BB_SERIAL           (((volatile uint8_t*)&g_in2) + 0x2Eu) /* serial / VIN base (cmd 0x18 / 0x19) == IN2+0x2E */
 
 /* ------------------------------------------------------------------------- */
 /* Additional bases for the APP node (addr 0x23), the extended sub-nodes      */
@@ -170,19 +174,15 @@ typedef enum {
 /* the vcu_state.h blocks; the OFFSETS are load-bearing.                      */
 /* ------------------------------------------------------------------------- */
 
-#define NB_BB_APPCFG                                                                                                   \
-    (((volatile uint8_t*)&g_in2) + 0x40u) /* APP-node config register base == IN2+0x40 */
+#define NB_BB_APPCFG           (((volatile uint8_t*)&g_in2) + 0x40u) /* APP-node config register base == IN2+0x40 */
 /* The BLE app-session flag is the shared fm_uv_cnt cell; ninebot clears it as the full u16
    via LOW->fm_uv_cnt (vcu_lowglob_t +0x0A). */
-#define NB_BB_SCR2 (((volatile uint8_t*)&g_stat)) /* report/scratch region (sub06/07 + generic) == g_stat */
-#define NB_BB_SUB02                                                                                                    \
-    (((volatile uint8_t*)&g_in2) + 0x180u) /* addr-0x02 op4/arg0xDA write base == IN2+0x180 */
+#define NB_BB_SCR2             (((volatile uint8_t*)&g_stat)) /* report/scratch region (sub06/07 + generic) == g_stat */
+#define NB_BB_SUB02            (((volatile uint8_t*)&g_in2) + 0x180u) /* addr-0x02 op4/arg0xDA write base == IN2+0x180 */
 /* The sub-node 0x06/0x07 flag is the BMS comm-loss counter (g_bms_commloss in
    vcu_state.h); ninebot clears that halfword. */
-#define NB_BB_PROV_DST                                                                                                 \
-    (((volatile uint8_t*)&g_in2) + 0x1B4u) /* serial-provision 3-word dst == IN2+0x1B4 */
-#define NB_BB_PROV_SRC                                                                                                 \
-    ((volatile uint8_t*)g_mcu_uid) /* serial-provision 3-word src == factory UID snapshot */
+#define NB_BB_PROV_DST         (((volatile uint8_t*)&g_in2) + 0x1B4u) /* serial-provision 3-word dst == IN2+0x1B4 */
+#define NB_BB_PROV_SRC         ((volatile uint8_t*)g_mcu_uid) /* serial-provision 3-word src == factory UID snapshot */
 
 /* Extended sub-node addresses + APP-node registration ops. */
 #define NB_ADDR_SUB02          0x02U /* ext sub-node: op4/arg0xDA bounded write        */
@@ -322,5 +322,15 @@ void nb_commit_mode(int16_t mode);
  *                      VCU_TRANSPORT_CAN). The leading \p x arg is unused.
  */
 void nb_reply_fc(void* x, uint8_t src, uint8_t dst, const uint8_t* body, char total_len);
+
+/**
+ * \brief           Send a solicited reply from the VCU to a node (public reply wrapper)
+ * \param[in]       transport: the bus to reply on (\ref vcu_transport_t)
+ * \param[in]       dst: destination node address
+ * \param[in]       cmd: reply command code
+ * \param[in]       data: reply body bytes (may be NULL when \p len is 0)
+ * \param[in]       len: body length in bytes
+ */
+void nb_reply_pub(int transport, uint8_t dst, uint8_t cmd, const uint8_t* data, uint8_t len);
 
 #endif /* NINEBOT_H */

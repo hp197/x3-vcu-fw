@@ -19,6 +19,7 @@
 #include "at32f415.h" /* Artery AT32F415 BSP / CMSIS (transitive peripheral + core types) */
 #include "vcu_state.h"
 
+#include "backup.h"   /* vcu_backup_app_request (ESC backup relay) */
 #include "busproto.h" /* bp_handle_fc / bp_node_register */
 #include "buzzer.h"
 #include "can.h"
@@ -188,6 +189,18 @@ static void nb_reply(int transport, uint8_t dst, uint8_t src, uint8_t flag, uint
 }
 
 /**
+ * \brief           Send a solicited reply from the VCU to a node (public reply wrapper)
+ * \param[in]       transport: the bus to reply on (\ref vcu_transport_t)
+ * \param[in]       dst: destination node address
+ * \param[in]       cmd: reply command code
+ * \param[in]       data: reply body bytes (may be NULL when \p len is 0)
+ * \param[in]       len: body length in bytes
+ */
+void nb_reply_pub(int transport, uint8_t dst, uint8_t cmd, const uint8_t* data, uint8_t len) {
+    nb_reply(transport, dst, NB_ADDR_VCU, NB_FLAG_REPLY, cmd, 0U, data, len);
+}
+
+/**
  * \brief           Gateway forward (frame for another node): out on the other bus
  * \note            `transport == 1 ? vcu_usart_report_send (USART ring) : report_ninebot
  *                      (CAN)`.
@@ -282,9 +295,7 @@ static uint8_t nb_validate_token(const uint8_t* body) {
  *                      derived-state refresh. config_identity() returns the global record
  *                      (&g_rec), which identity_store() updates (version + checksum).
  */
-static void nb_state_refresh(void) {
-    (void)identity_store((identity_rec_t*)config_identity());
-}
+static void nb_state_refresh(void) { (void)identity_store((identity_rec_t*)config_identity()); }
 
 /**
  * \brief           Reinitialise the drive-mode parameter block
@@ -293,9 +304,7 @@ static void nb_state_refresh(void) {
  *                      table (bitfield runs at IN2+0x3A/0x3C/0x3E, the 0x82-group report,
  *                      and the mode-branch accel/decel curves).
  */
-static void nb_drive_recompute_b(void) {
-    control_drive_param_init();
-}
+static void nb_drive_recompute_b(void) { control_drive_param_init(); }
 
 /* Chunked report constants. */
 #define NB_RPT_CHUNK   8U /* payload bytes per report frame (CAN DLC limit)            */
@@ -1146,6 +1155,10 @@ static void nb_app_command(uint8_t* f, int transport) {
     }
     cmd = f[NB_OFF_CMD];
 
+    if (cmd == NB_CMD_BACKUP) { /* read-only ESC backup: forward the body to the MCU over CAN */
+        vcu_backup_app_request(transport, f[NB_OFF_SRC], &f[NB_OFF_BODY], f[NB_OFF_LEN]);
+        return;
+    }
     if (cmd == NB_CMD_WRITE4) { /* 4: raw write to cfg base -0x40 + arg*2 */
         volatile uint8_t* dst = cfg - 0x40U + (uint32_t)arg * 2U;
 

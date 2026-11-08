@@ -81,6 +81,8 @@ void vcu_can_poll(void);
 #define CANID_RX_BMS_KEEPAL0 0x501U /* BMS: keep-alive (re-arms BMS watchdog)   */
 #define CANID_RX_BMS_KEEPAL1 0x502U /* BMS: keep-alive (re-arms BMS watchdog)   */
 #define CANID_RX_HANDSHAKE   0x7F1U /* ESC/BMS handshake -> event gate          */
+#define CANID_BACKUP_REQ     0x7DEU /* ESC read-only backup request (relay)     */
+#define CANID_BACKUP_RSP     0x7DFU /* ESC read-only backup response (relay)    */
 
 /* Temperature frames carry a raw byte biased by +0x32 (50) -- subtract to decode. */
 #define CAN_RX_TEMP_BIAS     50U
