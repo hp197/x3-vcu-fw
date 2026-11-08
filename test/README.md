@@ -1,10 +1,10 @@
 # On-target unit tests
 
-Unity unit tests for the firmware C code. They run **on the target CPU inside the x3emu
-emulator** (`clean/x3-vcu-emu`), not on the host: the drivers reach the AT32 registers
-through absolute-address macros, so the code only works where those addresses exist. The
-emulator models the peripherals the firmware uses, so a test can drive the real product code
-and the real BSP and look at what reaches the pins and buses.
+Unity unit tests for the firmware C code. They run **on the target CPU inside the
+[x3emu emulator](https://github.com/hp197/x3-vcu-emu)**, not on the host: the drivers reach
+the AT32 registers through absolute-address macros, so the code only works where those
+addresses exist. The emulator models the peripherals the firmware uses, so a test can drive
+the real product code and the real BSP and look at what reaches the pins and buses.
 
 ## Running
 
@@ -16,21 +16,27 @@ pio test -e emu-test -f test_ninebot -v  # with the full Unity output and the x3
 
 `pio test` without `-e emu-test` runs nothing: the product environment ignores the tests.
 
-PlatformIO builds `.pio/build/emu-test/firmware.elf` for the suite and runs
-`<venv python> <x3-vcu-emu> test --pio <elf>`. To rerun an image by hand, with a trace:
+The first run fetches the emulator from `github.com/hp197/x3-vcu-emu` into `.pio/` and builds a
+venv with its dependencies (`tools/run_emu_test.py`, cached between runs), so a fresh checkout
+works with no manual setup. Python 3.13+ and `git` must be on `PATH`; set `X3EMU_REF` to pin a
+tag or commit instead of `main`.
 
-```sh
-~/segway/.venv/bin/python ~/segway/clean/x3-vcu-emu test .pio/build/emu-test/firmware.elf \
-    --trace out/test.jsonl
-```
+### Using a local emulator
 
-The emulator checkout is `custom_x3emu_dir` in `[env:emu-test]`. To run against another one
-(an emulator worktree whose branch is not merged yet), put an override in the untracked
-`platformio.local.ini` next to `platformio.ini`:
+To use a checkout you already have (for example while developing the emulator alongside the
+firmware), point the test runner at it in the untracked `platformio.local.ini` next to
+`platformio.ini`; it is then used instead of the download:
 
 ```ini
 [env:emu-test]
-custom_x3emu_dir = /Users/henry/segway/clean/x3-vcu-emu.wt/tests-infra
+custom_x3emu_dir = ../x3-vcu-emu
+custom_x3emu_python = /path/to/venv/bin/python   # a venv with the emulator's dependencies
+```
+
+To rerun one image by hand, with a trace:
+
+```sh
+<python> <x3-vcu-emu> test .pio/build/emu-test/firmware.elf --trace out/test.jsonl
 ```
 
 ## How it works

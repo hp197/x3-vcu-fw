@@ -41,7 +41,7 @@ with the x3 bootloader's OTA path or x3utils over SWD.
 
 ## Tests
 
-Unity unit tests run on the target CPU inside the x3emu emulator (`../x3-vcu-emu`), one
+Unity unit tests run on the target CPU inside the [x3emu emulator](https://github.com/hp197/x3-vcu-emu), one
 image per suite in `test/test_<module>/`:
 
 ```bash
