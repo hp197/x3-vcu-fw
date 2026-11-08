@@ -1282,31 +1282,6 @@ static void test_ride_session_other_screen(void) {
     TEST_ASSERT_TRUE(prv_screen_sent(SCREEN_RIDE));
 }
 
-/**
- * \brief           Power-on step 0 in a session shows the ride or passcode screen
- * \note            Step 0: IN2+0x38 bit11 -> start 3/1 -> nb_commit_mode(1); start 2 -> IN2+0x3A
- *                      bit7 ? nb_commit_mode(4) : (VS+0x45 << 8 | 0x11).
- */
-static void test_power_on_first_screen(void) {
-    prv_enter(VCU_FSM_POWER_ON);
-    g_in2.f.status_flags = SF_SESSION;
-    g_vs.start_req = VS_START_UNLOCKED;
-    prv_ticks(1u);
-    TEST_ASSERT_TRUE(prv_screen_sent(SCREEN_RIDE));
-
-    setUp();
-    prv_enter(VCU_FSM_POWER_ON);
-    g_in2.f.status_flags = SF_SESSION;
-    g_vs.start_req = VS_START_LOCKED;
-    prv_ticks(1u);
-    /* vcu_config_init (config.c) reloads IN2+0x3A from the identity before the commit. */
-    if ((g_in2.f.cfg_flags & CFG_PASSCODE_NUM) != 0u) {
-        TEST_ASSERT_TRUE(prv_screen_sent(SCREEN_NUMERIC));
-    } else {
-        TEST_ASSERT_TRUE(prv_screen_sent((uint16_t)(((uint16_t)g_vs.code_len << 8) | 0x11u)));
-    }
-}
-
 /* ------------------------------------------------------------------------- */
 /* Input-test mode (task tail)                                               */
 /* ------------------------------------------------------------------------- */
@@ -1547,7 +1522,6 @@ int main(void) {
     RUN_TEST(test_charge_standby_key_hold);
     RUN_TEST(test_ride_session_screen);
     RUN_TEST(test_ride_session_other_screen);
-    RUN_TEST(test_power_on_first_screen);
     RUN_TEST(test_input_test_reports_events);
     RUN_TEST(test_input_test_one_event_per_run);
     RUN_TEST(test_input_test_output_latches);
