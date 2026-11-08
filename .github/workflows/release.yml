@@ -1,0 +1,84 @@
+name: release
+
+# On every push to main: build gt3/zt3/f3 and publish a GitHub pre-release with a
+# semver tag (vMAJOR.MINOR.PATCH-pre.<run>). Stable releases (no pre-release label) are
+# cut manually. The base version is the next patch above the latest stable tag (or 0.1.0
+# when there is none), so a manual stable vX.Y.Z always sorts above these pre-releases.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history for tag lookup)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --tags --force
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: pio-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+
+      - name: Compute pre-release version
+        id: ver
+        run: |
+          latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          if [ -z "$latest" ]; then
+            ver="0.1.0-pre.${{ github.run_number }}"
+          else
+            b=${latest#v}
+            IFS=. read -r MA MI PA <<< "$b"
+            ver="${MA}.${MI}.$((PA + 1))-pre.${{ github.run_number }}"
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "tag=v$ver" >> "$GITHUB_OUTPUT"
+          echo "pre-release version: $ver"
+
+      - name: Build gt3/zt3/f3
+        run: pio run -e gt3 -e zt3 -e f3
+
+      - name: Collect artifacts
+        run: |
+          v='${{ steps.ver.outputs.version }}'
+          mkdir -p dist
+          for e in gt3 zt3 f3; do
+            cp ".pio/build/$e/firmware.bin" "dist/x3-vcu-fw-$v-$e.bin"
+          done
+          ( cd dist && sha256sum *.bin > SHA256SUMS.txt )
+          { echo "### Pre-release $v"; echo '```'; ( cd dist && sha256sum *.bin ); echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.ver.outputs.tag }}" \
+            --prerelease \
+            --target "${{ github.sha }}" \
+            --title "${{ steps.ver.outputs.tag }}" \
+            --notes "Automated pre-release built from main (\`${{ github.sha }}\`). Stable releases are published manually." \
+            dist/x3-vcu-fw-*.bin dist/SHA256SUMS.txt
