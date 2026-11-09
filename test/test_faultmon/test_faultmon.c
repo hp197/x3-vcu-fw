@@ -693,19 +693,19 @@ static void test_status_bms_comm_loss(void) {
  */
 static void test_status_temperature_window(void) {
     g_in1.bms_temp_rx = 1u;
-    g_in2.f.temp_425 = 600u;
+    g_in2.f.pack_temp = 600u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_LO_TEMP_HIGH, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
-    g_in2.f.temp_425 = 599u;
+    g_in2.f.pack_temp = 599u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
-    g_in2.f.temp_425 = (uint16_t)-130;
+    g_in2.f.pack_temp = (uint16_t)-130;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_LO_TEMP_LOW, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
-    g_in2.f.temp_425 = (uint16_t)-129;
+    g_in2.f.pack_temp = (uint16_t)-129;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
-    g_in2.f.temp_425 = 0x5AA5u;
+    g_in2.f.pack_temp = 0x5AA5u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_LO_TEMP_HIGH, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
 }
@@ -717,11 +717,11 @@ static void test_status_temperature_window(void) {
  */
 static void test_status_temperature_needs_425(void) {
     g_in1.bms_temp_rx = 0u;
-    g_in2.f.temp_425 = 700u;
+    g_in2.f.pack_temp = 700u;
     g_scr.event_mask_lo = EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
-    g_in2.f.temp_425 = (uint16_t)-300;
+    g_in2.f.pack_temp = (uint16_t)-300;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & (EVT_LO_TEMP_HIGH | EVT_LO_TEMP_LOW));
 }
@@ -736,22 +736,22 @@ static void test_status_temperature_needs_425(void) {
 static void test_status_battery2_temp_warning(void) {
     g_in1.bms_temp_rx = 1u;
     g_scr.bat2_present = 1u;
-    g_in2.f.temp_425 = 580u;
+    g_in2.f.pack_temp = 580u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_HI_TEMP_WARN, g_scr.event_mask_hi & EVT_HI_TEMP_WARN);
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & EVT_LO_TEMP_HIGH);
-    g_in2.f.temp_425 = 600u;
+    g_in2.f.pack_temp = 600u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_HI_TEMP_WARN, g_scr.event_mask_hi & EVT_HI_TEMP_WARN);
     TEST_ASSERT_EQUAL_HEX16(EVT_LO_TEMP_HIGH, g_scr.event_mask_lo & EVT_LO_TEMP_HIGH);
-    g_in2.f.temp_425 = 599u;
+    g_in2.f.pack_temp = 599u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(EVT_LO_TEMP_HIGH, g_scr.event_mask_lo & EVT_LO_TEMP_HIGH); /* 0x1A path keeps 4 */
-    g_in2.f.temp_425 = 579u;
+    g_in2.f.pack_temp = 579u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_hi & EVT_HI_TEMP_WARN);
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_lo & EVT_LO_TEMP_HIGH);
-    g_in2.f.temp_425 = 590u;
+    g_in2.f.pack_temp = 590u;
     g_scr.bat2_present = 0u;
     fm_status_report();
     TEST_ASSERT_EQUAL_HEX16(0u, g_scr.event_mask_hi & EVT_HI_TEMP_WARN);

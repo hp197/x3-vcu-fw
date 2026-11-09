@@ -1370,7 +1370,7 @@ void control_speed_lock_fsm(void) {
         accel_lim = (int32_t)(int16_t)g_mode_table[row][MP_ACC];
         if ((g_lowglob.active_error_code != 0u)                                  /* active error code    */
             || ((int32_t)((uint32_t)g_fault_codes.comm_fault_word << 0x17) >= 0) /* A3C+0 bit8 clear     */
-            || ((int32_t)(int16_t)g_in2.f.temp_425 > 0x1cb)                      /* IN2+0xD6 over range   */
+            || ((int32_t)(int16_t)g_in2.f.pack_temp > 0x1cb)                     /* IN2+0xD6 over range   */
             || (g_vs.lock_arm_ctr < 100u)                                        /* arm counter too low   */
             || (g_stat.soc < SPEED_LOCK_SOC_MIN)                                 /* SoC below 20 % (STAT+0x11E) */
             || (((int32_t)g_stat.curr_limit / CURR_CEIL_DIVISOR) < accel_lim)) {

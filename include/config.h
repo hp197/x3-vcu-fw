@@ -69,19 +69,47 @@ typedef struct {
     uint8_t reserved03e[2];           /* +0x03E                                        */
     char model[IDENTITY_MODEL_LEN];   /* +0x040 component / model id         */
     uint8_t reserved2[48];            /* +0x050                                        */
-    /* ---- per-mode / tune config window +0x080..+0x17F ---- */
-    uint8_t config_80[6];             /* +0x080                                        */
+    /* ---- per-mode / tune config window +0x080..+0x0C1 (regs 0x40..0x60); the IN2 runtime
+       view (vcu_state.h vcu_in2_t) names these same cells. Reg-mapped config cells are split
+       out here; runtime-only mirrors (soc / speed / range) stay reserved. ---- */
+    uint16_t session_token;           /* +0x080 reg 0x40 rental session token          */
+    uint8_t reserved82[2];            /* +0x082                                        */
+    uint16_t prof_ceiling;            /* +0x084 reg 0x42 drive-profile ceiling         */
     uint16_t prof_86;                 /* +0x086 reg 0x43 drive-profile cell            */
     uint16_t prof_88;                 /* +0x088 reg 0x44 drive-profile cell            */
     uint16_t prof_8a;                 /* +0x08A reg 0x45 drive-profile cell            */
     uint16_t speed_limit;             /* +0x08C reg 0x46 base speed ceiling (low byte) */
-    uint8_t config_8e[4];             /* +0x08E                                        */
-    uint16_t level;                   /* +0x092 reg 0x49 level / commloss scale        */
-    uint8_t config_94[32];            /* +0x094                                        */
+    uint16_t gear_a_ceiling;          /* +0x08E reg 0x47 gear DRIVE_A ceiling          */
+    uint16_t speed_limit_2;           /* +0x090 reg 0x48 per-gear B/C ceilings         */
+    uint16_t level;                   /* +0x092 reg 0x49 auto power-off delay (min)    */
+    uint8_t reserved94[2];            /* +0x094                                        */
+    uint16_t chg_sched_start;         /* +0x096 reg 0x4B charge-window start           */
+    uint16_t chg_sched_end;           /* +0x098 reg 0x4C charge-window end             */
+    uint8_t reserved9a[26];           /* +0x09A..+0x0B3 reg 0x4D + runtime mirror      */
     int16_t gear;                     /* +0x0B4 reg 0x5A stored gear                   */
-    uint8_t config_b6[12];            /* +0x0B6                                        */
+    uint8_t reservedb6[4];            /* +0x0B6..+0x0B9 runtime control DP scratch     */
+    uint16_t brake_light_flash;       /* +0x0BA reg 0x5D brake-light flash select      */
+    uint8_t reservedbc[6];            /* +0x0BC..+0x0C1 runtime range mirror + pad     */
     uint16_t passcode_num;            /* +0x0C2 reg 0x61 numeric passcode              */
-    uint8_t config_c4[188];           /* +0x0C4                                        */
+    /* ---- persisted ride counters +0x0C4..+0x17F. The IN2 runtime view (vcu_state.h) names
+       these cells; the same cells are committed to flash here. session_dist is the
+       user-visible "total" distance (display km = /10), reset only by a rental session. ---- */
+    uint32_t session_dist;            /* +0x0C4 session distance (u32, /10 = km)       */
+    uint32_t session_total_time;      /* +0x0C8 session total time (200-tick units)    */
+    uint32_t session_ride_time;       /* +0x0CC session ride time (200-tick units)     */
+    int16_t session_trip_dist;        /* +0x0D0 trip distance (zeroed at boot)         */
+    int16_t session_trip_total_time;  /* +0x0D2 trip total time                        */
+    int16_t session_trip_ride_time;   /* +0x0D4 trip ride time                         */
+    uint16_t pack_temp;               /* +0x0D6 pack thermistor temp (0x5AA5=inval)    */
+    uint8_t reserved0d8[2];           /* +0x0D8                                        */
+    uint16_t avg_speed;               /* +0x0DA trip average speed (odometer)          */
+    uint8_t reserved0dc[4];           /* +0x0DC                                        */
+    uint16_t dir_bits;                /* +0x0E0 direction bits                         */
+    uint16_t passcode_key[2];         /* +0x0E2 key-sequence passcode (two slots)      */
+    uint8_t reserved0e6[2];           /* +0x0E6                                        */
+    uint16_t alarm_sensitivity;       /* +0x0E8 reg 0x74 anti-theft sensitivity 0/1/2  */
+    uint16_t wobble_sens;             /* +0x0EA reg 0x75 wobble-warning sensitivity    */
+    uint8_t reserved0ec[148];         /* +0x0EC..+0x17F (no known decode)              */
     /* ---- identity tail +0x180..+0x1F3 (registers 0xC0..0xF9) ---- */
     uint8_t mcu_id[20];               /* +0x180 reg 0xC0..0xC9: the motor controller's identity
                                          block. vcu_config_init asks CAN node 0x02 for 20 B of its

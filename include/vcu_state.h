@@ -289,7 +289,7 @@ typedef struct {
     int16_t trip_dist;          /*!< +0xD0 trip distance count (s16, saturating; zeroed at boot by vcu_config_init) */
     int16_t trip_total_time;    /*!< +0xD2 trip time in the ride run states (200-tick units, s16 saturating; zeroed at boot) */
     int16_t trip_ride_time;     /*!< +0xD4 trip ride time (MF_ACTIVE set; 200-tick units, s16 saturating; zeroed at boot) */
-    uint16_t temp_425;          /*!< +0xD6 pack thermistor temp; 0x5AA5 = invalid/init sentinel */
+    uint16_t pack_temp;         /*!< +0xD6 pack thermistor temp; 0x5AA5 = invalid/init sentinel */
     uint8_t _rsvd8[2];          /*!< +0xD8..+0xD9                        */
     uint16_t derived_speed;     /*!< +0xDA trip average speed = trip_dist*360/trip_ride_time (odometer) / control DP_WDA */
     uint8_t _rsvdc[4];          /*!< +0xDC..+0xDF                        */

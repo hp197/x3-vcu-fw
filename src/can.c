@@ -487,7 +487,7 @@ static void can_rx_std(const volatile uint8_t* msg) {
 
         case CANID_RX_BMS_TEMP2: /* 0x425: received flag, temp + display, no count */
             g_in1.bms_temp_rx = 1u;
-            g_in2.f.temp_425 = (uint16_t)(((int)(uint8_t)d[2] - (int)CAN_RX_TEMP_BIAS) * 10);
+            g_in2.f.pack_temp = (uint16_t)(((int)(uint8_t)d[2] - (int)CAN_RX_TEMP_BIAS) * 10);
             g_telem_frame[REPORT_TELEM_CAN425] = (uint16_t)((uint16_t)d[2] | ((uint16_t)d[5] << 8));
             break;
 
