@@ -18,6 +18,7 @@
  *                      The Artery AT32F415 BSP + CMSIS keep their own licenses.
  */
 #include "can.h"
+#include "backup.h"   /* vcu_backup_can_response (ESC backup relay) */
 #include "board.h"    /* board_irq_enable */
 #include "busproto.h" /* bp_frame_t + vcu_busproto_rx (ext-id TP tunnel route) */
 #include "buzzer.h"   /* buzzer_beep (battery-2 presence beeps) */
@@ -486,7 +487,7 @@ static void can_rx_std(const volatile uint8_t* msg) {
 
         case CANID_RX_BMS_TEMP2: /* 0x425: received flag, temp + display, no count */
             g_in1.bms_temp_rx = 1u;
-            g_in2.f.temp_425 = (uint16_t)(((int)(uint8_t)d[2] - (int)CAN_RX_TEMP_BIAS) * 10);
+            g_in2.f.pack_temp = (uint16_t)(((int)(uint8_t)d[2] - (int)CAN_RX_TEMP_BIAS) * 10);
             g_telem_frame[REPORT_TELEM_CAN425] = (uint16_t)((uint16_t)d[2] | ((uint16_t)d[5] << 8));
             break;
 
@@ -539,6 +540,10 @@ static void can_rx_std(const volatile uint8_t* msg) {
             } else {
                 g_candev.event_flags = (uint16_t)(g_candev.event_flags | CANRX_HS_EVENT_BIT);
             }
+            break;
+
+        case CANID_BACKUP_RSP: /* 0x7DF : relay the MCU's read-only backup chunk to the app */
+            vcu_backup_can_response(m->data, m->dlc);
             break;
 
         default: break;
@@ -1202,8 +1207,8 @@ void CAN1_SE_IRQHandler(void) {
 /* level read lives in gpio.c.                                               */
 /* ------------------------------------------------------------------------- */
 /* Loop periods. */
-#define CAN_RETRIG_RELOAD 400  /* drive-active retrigger window (ticks)  */
-#define CAN_SUBDIV_RELOAD 50   /* drive-active subdivider (ticks)        */
+#define CAN_RETRIG_RELOAD 400 /* drive-active retrigger window (ticks)  */
+#define CAN_SUBDIV_RELOAD 50  /* drive-active subdivider (ticks)        */
 
 /* CAN tx-device vtable send. The device object is g_candev (this file). The vtable  */
 /* call RETURNS A POINTER to the just-staged 8-byte payload buffer (it is handed      */

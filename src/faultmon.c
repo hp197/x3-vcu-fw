@@ -456,7 +456,7 @@ void fm_status_report(void) {
         control_event_clear(4);
         control_event_clear(5);
     } else {
-        temp = (int16_t)g_in2.f.temp_425;
+        temp = (int16_t)g_in2.f.pack_temp;
         if (temp >= FM_TEMP_HIGH) {
             control_event_set(4);
         } else if ((temp > FM_TEMP_WARN_ABOVE) && (g_scr.bat2_present != 0)) { /* battery 2 present */
