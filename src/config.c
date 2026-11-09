@@ -36,7 +36,7 @@
  *                      ninebot/faultmon/control reach through g_in2. &g_rec, g_rec.field and the
  *                      g_in2 field views all resolve to the same memory.
  */
-#define g_rec (*(identity_rec_t*)(void*)((volatile uint8_t*)&g_in2)) /* the 512-byte IN2 record union */
+#define g_rec (*(identity_rec_t*)(void*)&g_in2) /* the 512-byte IN2 record union */
 
 /**
  * \brief           A/B version bookkeeping

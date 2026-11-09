@@ -139,9 +139,9 @@ uint32_t bp_tx_ctx_init(uint32_t arg) {
     /* The pre-init object:
        +0x00 = the report-descriptor method (the USART ring enqueue, vcu_usart_report_send),
        +0x04 = the runtime context arg. */
-    g_bp_tx_ctx.send_fn = (uint32_t)(uintptr_t)&vcu_usart_report_send;
+    g_bp_tx_ctx.send_fn = (uint32_t)&vcu_usart_report_send;
     g_bp_tx_ctx.arg = arg;
-    return (uint32_t)(uintptr_t)&g_bp_tx_ctx;
+    return (uint32_t)&g_bp_tx_ctx;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -170,7 +170,7 @@ uint32_t bp_report_vfn(uint32_t* slot, uint32_t a1, uint32_t a2) {
     if (obj == 0U) {
         return 0;
     }
-    fn = *(bp_report_vcall_t*)(volatile void*)(uintptr_t)obj; /* vtable[0] = word at *slot (real addr) */
+    fn = *(bp_report_vcall_t*)obj; /* vtable[0] = word at *slot (real addr) */
     if (fn != NULL) {
         fn(a1, a2);
     }
@@ -717,7 +717,7 @@ static void bp_rpt_send(uint8_t cmd, uint8_t arg, const uint8_t* payload, uint8_
     if (m->send_obj == 0u) {
         return;
     }
-    vcu_usart_report_send((volatile uint8_t*)(uintptr_t)m->send_obj, m->nb_src, m->nb_dst, plen, m->nb_cmd, m->nb_arg,
+    vcu_usart_report_send((volatile uint8_t*)m->send_obj, m->nb_src, m->nb_dst, plen, m->nb_cmd, m->nb_arg,
                           payload);
 }
 
@@ -785,7 +785,7 @@ void bp_state_notify(void* self) {
     /* Clear the frame scratch first: the bit packer read-modify-writes each byte, so
        the bits after the last field must start at 0. */
     bp_block_clear(buf, sizeof buf);
-    bp_state_serialize(node->id, (const bp_sig_desc_t*)(uintptr_t)g_report_mgr.desc_table, node->rec,
+    bp_state_serialize(node->id, (const bp_sig_desc_t*)g_report_mgr.desc_table, node->rec,
                        (int)node->rec_count, buf, &cnt);
     bp_rpt_send(BP_RPT_CMD_FE, BP_RPT_ARG_FE, buf, cnt);
 }
@@ -832,7 +832,7 @@ static int bp_desc_find(const bp_sig_desc_t* tbl, uint16_t n, uint32_t key) {
 static int bp_resolve_records(const uint8_t* key, uint32_t id, uint32_t desc_table, uint16_t desc_count,
                               volatile uint8_t* out_id, volatile uint16_t* out_seq, volatile uint8_t* out_recs,
                               volatile uint8_t* out_cnt) {
-    const bp_sig_desc_t* tbl = (const bp_sig_desc_t*)(uintptr_t)desc_table;
+    const bp_sig_desc_t* tbl = (const bp_sig_desc_t*)desc_table;
     uint32_t nrec;
     uint32_t r;
     uint32_t off = 2u;
@@ -955,7 +955,7 @@ static int bp_rpt_resolve(const uint8_t* key, uint32_t id) {
     rc = bp_resolve_records(key, id, m->desc_table, m->desc_count, &node->id, &node->seq, node->rec, &node->rec_count);
     if (rc != 0) {
         scratch[1] = 1;
-        bp_rpt_emit_list(scratch, (const bp_sig_desc_t*)(uintptr_t)m->desc_table, node->rec, node->rec_count);
+        bp_rpt_emit_list(scratch, (const bp_sig_desc_t*)m->desc_table, node->rec, node->rec_count);
         return -1;
     }
     node->seq = (uint16_t)((uint32_t)node->seq * BP_RMGR_SEQ_SCALE);
@@ -1090,16 +1090,16 @@ static uint32_t bp_report_mgr_init(uint8_t src, uint8_t dst) {
 
     /* Node-table metadata. */
     m->node_count = 0;
-    m->desc_table = (uint32_t)(uintptr_t)k_bp_sig_desc; /* descriptor table */
+    m->desc_table = (uint32_t)k_bp_sig_desc; /* descriptor table */
     m->desc_count = (uint16_t)BP_SIG_DESC_COUNT;        /* descriptor count (38) */
-    m->send_obj = (uint32_t)(uintptr_t)&g_uartctx;      /* send object: the USART2 TX ring (bp_rpt_send) */
-    return (uint32_t)(uintptr_t)(&g_report_mgr);        /* the object address */
+    m->send_obj = (uint32_t)&g_uartctx;      /* send object: the USART2 TX ring (bp_rpt_send) */
+    return (uint32_t)(&g_report_mgr);        /* the object address */
 }
 
 /** Report descriptor / vtable init. */
 static void bp_report_vtable_init(uint32_t descriptor) {
     g_bp_rvtbl.descriptor = descriptor;
-    g_bp_rvtbl.vfn = (uint32_t)(uintptr_t)&bp_report_vfn;
+    g_bp_rvtbl.vfn = (uint32_t)&bp_report_vfn;
 }
 
 /**
@@ -1115,7 +1115,7 @@ void bp_handle_fc(uint8_t sa, uint8_t da, const bp_frame_t* frame) {
     if (frame->data[0] == BP_CMD_FC) {
         m->vt_notify(1); /* mgr_ptr->vt[+0x14] */
         /* mgr_ptr->vt[+0x04]: emit the 0xFC reply; nb_src/nb_dst come from the mgr object. */
-        m->vt_emit_fc((void*)m, 0, (const uint8_t*)(const volatile void*)g_bp_reply_payload, BP_RPT_REPLY_LEN);
+        m->vt_emit_fc((void*)m, 0, (const uint8_t*)g_bp_reply_payload, BP_RPT_REPLY_LEN);
     }
 }
 
@@ -1143,7 +1143,7 @@ void bp_node_register(const uint8_t* key, uint8_t len) {
        resolved id. */
     nodeid = m->vt_resolve(key, len);
     handle = m->vt_register_desc((uint8_t)nodeid);
-    g_bp_rptr.last_node_handle = (uint32_t)(uintptr_t)handle;
+    g_bp_rptr.last_node_handle = (uint32_t)handle;
     if (handle != NULL) {
         bp_block_clear((volatile uint8_t*)rec, BP_NODE_REC_SIZE);
         rec->node_id = (uint8_t)nodeid;
@@ -1259,7 +1259,7 @@ static int bp_fast_frame_stream(uint8_t src, uint8_t dst, uint16_t consumed, con
    The vtable is built at run time (busproto's handler table -> bp_emit), so the call
    is NULL-guarded. */
 static void bp_fast_emit(int32_t ctx, volatile bp_session_t* s, const bp_frame_t* frame) {
-    const bp_ctx_t* vt = (const bp_ctx_t*)(uintptr_t)ctx;
+    const bp_ctx_t* vt = (const bp_ctx_t*)ctx;
 
     if (vt != NULL && vt->emit != NULL) {
         (void)vt->emit((bp_session_t*)s, frame);
@@ -1270,7 +1270,7 @@ static void bp_fast_emit(int32_t ctx, volatile bp_session_t* s, const bp_frame_t
    reaches the timeout window (+0x18), tell the ack callback [ctx+4] (phase 1), send a
    TP.CM abort (bp_frame_bcast) and idle the session. */
 static void bp_fast_frame_cont(volatile bp_session_t* s, int32_t ctx) {
-    const bp_ctx_t* vt = (const bp_ctx_t*)(uintptr_t)ctx;
+    const bp_ctx_t* vt = (const bp_ctx_t*)ctx;
     bp_frame_t frame = {0};
     uint16_t t = s->tick;
 
@@ -1353,7 +1353,7 @@ void bp_task_fast_service(void) {
     /* The session manager: session array, count, handler ctx. */
     volatile bp_session_t* base = g_bp_mgr.base;
     uint16_t count = g_bp_mgr.count;
-    int32_t ctx = (int32_t)(uintptr_t)g_bp_mgr.ctx;
+    int32_t ctx = (int32_t)g_bp_mgr.ctx;
     uint16_t i;
 
     for (i = 0; i < count; i = (uint16_t)(i + 1)) {

@@ -23,8 +23,8 @@
 /* Peripheral-context handles (owned by the CAN / USART subsystems; the dispatcher only
    passes them to the reply paths): g_uartctx and g_candev, the same objects the drivers
    and every report writer use. */
-#define OTA_USART_CTX         ((uint32_t)(uintptr_t)((volatile uint8_t*)&g_uartctx))
-#define OTA_CAN_CTX           ((uint32_t)(uintptr_t)((volatile uint8_t*)&g_candev))
+#define OTA_USART_CTX         ((uint32_t)&g_uartctx)
+#define OTA_CAN_CTX           ((uint32_t)&g_candev)
 
 /* OTA reply status codes the dispatcher returns. */
 #define OTA_STATUS_OK         0x00u /* no error                                   */
@@ -428,7 +428,7 @@ static void ota_send_reply(const uint8_t* payload, int transport, uint8_t status
     if (transport == (int)VCU_TRANSPORT_USART) {
         /* The USART reply goes straight into the reply ring: usart.c's
            vcu_usart_report_send(ctx, src, dst, len, cmd, arg, payload). */
-        vcu_usart_report_send((volatile uint8_t*)(uintptr_t)OTA_USART_CTX, NB_ADDR_VCU, payload[NB_OFF_SRC],
+        vcu_usart_report_send((volatile uint8_t*)OTA_USART_CTX, NB_ADDR_VCU, payload[NB_OFF_SRC],
                               OTA_REPLY_LEN, OTA_REPLY_CMD, status, payload + NB_OFF_ARG);
     } else if (transport == (int)VCU_TRANSPORT_CAN) {
         /* The CAN reply also arms the retransmit timer (ctx+0xe = 500) and sets
@@ -451,7 +451,7 @@ void vcu_ota_dispatch(uint8_t* payload, int transport, uint32_t p3, uint32_t p4)
             ota_reply_can(NB_ADDR_VCU, payload[NB_OFF_SRC], OTA_ACK_LEN, OTA_REPLY_CMD, OTA_STATUS_BUSY,
                           payload + NB_OFF_BODY, p4);
         } else {
-            vcu_usart_report_send((volatile uint8_t*)(uintptr_t)OTA_USART_CTX, NB_ADDR_VCU, payload[NB_OFF_SRC],
+            vcu_usart_report_send((volatile uint8_t*)OTA_USART_CTX, NB_ADDR_VCU, payload[NB_OFF_SRC],
                                   OTA_ACK_LEN, OTA_REPLY_CMD, OTA_STATUS_BUSY, NULL);
         }
         g_ota.busy = 0;
@@ -485,7 +485,7 @@ void vcu_ota_dispatch(uint8_t* payload, int transport, uint32_t p3, uint32_t p4)
  * \brief           Boot-time descriptor sync (tail of config_identity_sync)
  */
 void ota_desc_boot_sync(void) {
-    memcpy((void*)&g_desc, (const void*)(uintptr_t)OTA_BOOT_DESC_ADDR, OTA_DESC_SIZE);
+    memcpy((void*)&g_desc, (const void*)OTA_BOOT_DESC_ADDR, OTA_DESC_SIZE);
     if (g_desc.magic != OTA_DESC_MAGIC) {
         g_desc.commit = 0u;
         g_desc.length = 0u;

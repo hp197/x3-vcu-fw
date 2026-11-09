@@ -73,7 +73,7 @@ static const uint8_t k_node2_reg_d0[NODE2_TABLE_LEN] = {0x00u, 0x06u, 0x00u, 0x0
 /* factory UID base).                                                           */
 #define VCU_UID            0x1FFFF7E8u
 /* Factory UID words are read straight from flash (0x1FFFF7E8). */
-#define MMIO32(addr)       (*(volatile uint32_t*)(uintptr_t)(addr))
+#define MMIO32(addr)       (*(volatile uint32_t*)(addr))
 
 /* Ninebot event-report sink constants. */
 #define NB_RPT_PRIO_SINGLE 6u /* J1939 priority of the single-frame report        */
