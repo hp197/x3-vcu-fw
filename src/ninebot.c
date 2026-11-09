@@ -1155,8 +1155,17 @@ static void nb_app_command(uint8_t* f, int transport) {
     }
     cmd = f[NB_OFF_CMD];
 
-    if (cmd == NB_CMD_BACKUP) { /* read-only ESC backup: forward the body to the MCU over CAN */
-        vcu_backup_app_request(transport, f[NB_OFF_SRC], &f[NB_OFF_BODY], f[NB_OFF_LEN]);
+    if (cmd == NB_CMD_BACKUP) { /* read-only backup: body[0] selects the node (VCU local / MCU relay) */
+        const uint8_t* body = &f[NB_OFF_BODY];
+        uint8_t blen = f[NB_OFF_LEN];
+
+        if (blen >= 1U) {
+            if (body[0] == BACKUP_NODE_VCU) {
+                vcu_backup_local_request(transport, f[NB_OFF_SRC], &body[1], (uint8_t)(blen - 1U));
+            } else if (body[0] == BACKUP_NODE_MCU) {
+                vcu_backup_app_request(transport, f[NB_OFF_SRC], &body[1], (uint8_t)(blen - 1U));
+            }
+        }
         return;
     }
     if (cmd == NB_CMD_WRITE4) { /* 4: raw write to cfg base -0x40 + arg*2 */
