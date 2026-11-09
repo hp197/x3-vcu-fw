@@ -170,7 +170,7 @@ uint32_t bp_report_vfn(uint32_t* slot, uint32_t a1, uint32_t a2) {
     if (obj == 0U) {
         return 0;
     }
-    fn = *(bp_report_vcall_t*)(volatile void*)obj; /* vtable[0] = word at *slot (real addr) */
+    fn = *(bp_report_vcall_t*)obj; /* vtable[0] = word at *slot (real addr) */
     if (fn != NULL) {
         fn(a1, a2);
     }
@@ -1115,7 +1115,7 @@ void bp_handle_fc(uint8_t sa, uint8_t da, const bp_frame_t* frame) {
     if (frame->data[0] == BP_CMD_FC) {
         m->vt_notify(1); /* mgr_ptr->vt[+0x14] */
         /* mgr_ptr->vt[+0x04]: emit the 0xFC reply; nb_src/nb_dst come from the mgr object. */
-        m->vt_emit_fc((void*)m, 0, (const uint8_t*)(const volatile void*)g_bp_reply_payload, BP_RPT_REPLY_LEN);
+        m->vt_emit_fc((void*)m, 0, (const uint8_t*)g_bp_reply_payload, BP_RPT_REPLY_LEN);
     }
 }
 

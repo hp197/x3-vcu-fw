@@ -897,7 +897,7 @@ static void nb_reg_read(uint8_t* f, int transport) {
 
     if (((uint32_t)arg * 2U + (uint32_t)count) <= (NB_REG_COUNT * 2U)) {
         nb_reply(transport, f[NB_OFF_SRC], NB_ADDR_VCU, NB_FLAG_REPLY, NB_CMD_REG_REPLY, arg,
-                 (const uint8_t*)(const void*)&g_in2.reg[arg], count);
+                 (const uint8_t*)&g_in2.reg[arg], count);
     }
 }
 
@@ -930,7 +930,7 @@ static void nb_reg_write(uint8_t* f, int side_effects) {
  */
 static void nb_reply_block(int transport, uint8_t* f, uint8_t cmd, uint8_t arg, const volatile uint8_t* blk,
                            uint8_t nbytes) {
-    nb_reply(transport, f[NB_OFF_SRC], NB_ADDR_VCU, NB_FLAG_REPLY, cmd, arg, (const uint8_t*)(const void*)blk, nbytes);
+    nb_reply(transport, f[NB_OFF_SRC], NB_ADDR_VCU, NB_FLAG_REPLY, cmd, arg, (const uint8_t*)blk, nbytes);
 }
 
 /**
@@ -1307,8 +1307,8 @@ static void nb_sub0607_command(uint8_t* f) {
  * \param[in]       transport: bus the request came on
  */
 static void nb_ident_read(uint8_t* f, int transport) {
-    const uint8_t* ident = (const uint8_t*)(const void*)g_in2.ident;
-    uint32_t room = (uint32_t)(((const uint8_t*)(const void*)&g_in2 + sizeof(g_in2)) - ident);
+    const uint8_t* ident = (const uint8_t*)g_in2.ident;
+    uint32_t room = (uint32_t)(((const uint8_t*)&g_in2 + sizeof(g_in2)) - ident);
     uint8_t count = f[NB_OFF_BODY];
     uint8_t arg = f[NB_OFF_ARG];
 
@@ -1523,7 +1523,7 @@ void vcu_ninebot_process(uint8_t* frame, int transport, uint32_t p3, uint32_t p4
  *                      where the dispatcher treats the buffer as mutable.
  */
 void vcu_ninebot_dispatch(const uint8_t* frame) {
-    vcu_ninebot_process((uint8_t*)(const void*)frame, (int)VCU_TRANSPORT_USART, 0U, 0U);
+    vcu_ninebot_process((uint8_t*)frame, (int)VCU_TRANSPORT_USART, 0U, 0U);
 }
 
 /**
