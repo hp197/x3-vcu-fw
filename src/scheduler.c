@@ -100,7 +100,7 @@ void sched_task_dispatch_tick(void) {
         if (period == due) {
             g_disp.divider = 0;
             if (g_bp_node.cap[0] != 0) {
-                bp_state_notify((void*)(uintptr_t)g_bp_rptr.last_node_handle);
+                bp_state_notify((void*)g_bp_rptr.last_node_handle);
             }
         }
     }

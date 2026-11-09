@@ -1224,7 +1224,7 @@ static uint32_t can_candev_tx(uint32_t id) { /* (*(dev+0x1c))(id) */
     if (get == NULL) {
         return 0;
     }
-    return (uint32_t)(uintptr_t)get(id);
+    return (uint32_t)get(id);
 }
 
 /* vcu_can_send_std(len, std_id, payload): arg3 is a PAYLOAD POINTER (copied into the */
@@ -1263,7 +1263,7 @@ uint8_t vcu_can_senders(void) {
             ret = can_candev_tx(CANID_BROADCAST);
             /* arg3 is the staged payload buffer pointer; forward it as a */
             /* standard-id data frame through can.c's real sender. */
-            vcu_can_send_std(VCU_CAN_DLEN, CANID_BROADCAST, (const uint8_t*)(uintptr_t)ret);
+            vcu_can_send_std(VCU_CAN_DLEN, CANID_BROADCAST, (const uint8_t*)ret);
         } else {
             tmr->subdiv_timer = tmr->subdiv_timer - 1;
         }
